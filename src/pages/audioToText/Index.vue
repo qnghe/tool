@@ -25,6 +25,15 @@ const uploading = (event, file, fileList) => {
   console.log(event);
 };
 </script>
+<script>
+export default {
+    mounted() {
+        this.$api.get('/api/word').then(res => {
+            console.log(res);
+        })
+    }
+}
+</script>
 <style scoped>
 .audio-text {
   margin-top: 80px;

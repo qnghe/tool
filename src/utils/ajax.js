@@ -1,5 +1,4 @@
 
-import Vue from 'vue';
 import axios from 'axios';
 //取消请求Token
 const CancelToken = axios.CancelToken;
@@ -32,10 +31,10 @@ http.interceptors.response.use(
             const dataAxios = response.data
             const { error } = dataAxios
             if (dataAxios.code && dataAxios.code !== 0) {
-                Vue.prototype.$message.error(dataAxios.message);
+                // Vue.prototype.$message.error(dataAxios.message);
                 return dataAxios
             } else if (error) {
-                Vue.prototype.$message.error(dataAxios);
+                // Vue.prototype.$message.error(dataAxios);
                 return Promise.reject(dataAxios.message ? dataAxios.message : response);
             } else {
                 return dataAxios
@@ -53,10 +52,10 @@ http.interceptors.response.use(
             } else if (response.status == 403) {
 
             } else {
-                Vue.prototype.$message.error(message || '网络错误,请稍后再试!')
+                // Vue.prototype.$message.error(message || '网络错误,请稍后再试!')
             }
         } else {
-            Vue.prototype.$message.error('网络异常，请稍后再试或联系管理员!')
+            // Vue.prototype.$message.error('网络异常，请稍后再试或联系管理员!')
         }
         return Promise.reject(err)
     }
