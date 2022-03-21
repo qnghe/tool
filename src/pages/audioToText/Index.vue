@@ -3,8 +3,7 @@
         <el-upload
             class="upload-demo"
             drag
-            action="https://jsonplaceholder.typicode.com/posts/"
-            multiple
+            action="/api/uploadAudio"
             :on-progress="uploading"
         >
             <el-icon class="el-icon--upload"><upload-filled /></el-icon>
@@ -23,14 +22,16 @@
 import { UploadFilled, Download } from "@element-plus/icons-vue";
 const uploading = (event, file, fileList) => {
   console.log(event);
+  console.log(file);
+  console.log(fileList);
 };
 </script>
 <script>
 export default {
     mounted() {
-        this.$api.get('/api/word').then(res => {
-            console.log(res);
-        })
+        // this.$api.get('/api/word').then(res => {
+        //     console.log(res);
+        // })
     }
 }
 </script>
