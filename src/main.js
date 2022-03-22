@@ -5,7 +5,7 @@ import 'element-plus/dist/index.css';
 import './assets/style/index.css';
 import App from './App.vue';
 import routes from './routes';
-import api from './utils/ajax';
+import ajax from './utils/ajax';
 
 const router = createRouter({
     history: createWebHistory(),
@@ -14,7 +14,7 @@ const router = createRouter({
 
 const app = createApp(App);
 
-app.config.globalProperties.$api = api;
+app.config.globalProperties.$ajax = ajax;
 
 app.use(ElementPlus);
 app.use(router);
