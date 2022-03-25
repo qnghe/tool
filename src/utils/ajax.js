@@ -5,53 +5,46 @@ const CancelToken = axios.CancelToken;
 const source = CancelToken.source();
 //请求实例
 const http = axios.create({
-    headers: { 'Content-Type': 'application/json; charset=UTF-8' },
     cancelToken: source.token
 });
 // 超时
 http.defaults.timeout = 30 * 1000;
-
-// test
 http.defaults.baseURL = '/';
 
 // 请求拦截
 http.interceptors.request.use(config => {
-    // if(!config.noLoading) loadingGif(true);
+    if(!config.noLoading) loadingGif();
     // config.headers['Authorization'] = Vue.prototype.$userInfo.getLoginInfo().token;
     return config;
 }, err => Promise.reject(err));
 // 响应拦截
 http.interceptors.response.use(
     response => {
-        // if(!response.config.noLoading) loadingGif(false);
+        if(!response.config.noLoading) loadingGif();
         //凭证相关
-        if (response.config.ignore) {
-            return response
+        const respData = response.data;
+        const { error } = respData;
+        if (respData.code && respData.code !== 0) {
+            // Vue.prototype.$message.error(respData.message);
+            return respData;
+        } else if (error) {
+            // Vue.prototype.$message.error(respData);
+            return Promise.reject(respData.message ? respData.message : response);
         } else {
-            const dataAxios = response.data
-            const { error } = dataAxios
-            if (dataAxios.code && dataAxios.code !== 0) {
-                // Vue.prototype.$message.error(dataAxios.message);
-                return dataAxios
-            } else if (error) {
-                // Vue.prototype.$message.error(dataAxios);
-                return Promise.reject(dataAxios.message ? dataAxios.message : response);
-            } else {
-                return dataAxios
-            }
+            return respData;
         }
     },
     err => {
         if (!err.config.noLoading) loadingGif(false);
         if (err && err.response) {
-            let response = err.response;
-            let message = response.data && response.data.error && (response.data.error.details || response.data.error.message) || '';
+            const response = err.response;
+            const error = response.error || '';
             if (response.status == 401) {
 
-                return
             } else if (response.status == 403) {
 
             } else {
+
                 // Vue.prototype.$message.error(message || '网络错误,请稍后再试!')
             }
         } else {
@@ -60,7 +53,6 @@ http.interceptors.response.use(
         return Promise.reject(err)
     }
 );
-// eslint-disable-next-line
 function loadingGif() {
     
 }
