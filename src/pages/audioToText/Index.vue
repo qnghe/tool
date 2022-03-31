@@ -29,6 +29,7 @@ function uploading(event, file, fileList) {
 </script>
 <script>
 import { generateFileMD5 } from '@/utils/gen-md5.js';
+import { sliceFile } from '@/utils/file.js';
 export default {
     mounted() {
         // this.$api.get('/api/word').then(res => {
@@ -36,42 +37,50 @@ export default {
         // })
     },
     methods: {
-        uploadReq(options) {
+        async uploadReq(options) {
             console.log(options);
             const file = options.file;
-            let start = Date.now()
-            const chunks = this.sliceFile(file);
-            console.log( chunks );
-            generateFileMD5(file).then((fileMD5) => {
-                console.log(fileMD5);
-                for (let i = 0; i < chunks.length; i++) {
-                    const formData = new FormData();
-                    formData.append("file", chunks[i]);
-                    formData.append("name", file.name);
-                    formData.append("id", fileMD5);
-                    formData.append("chunks", chunks.length);
-                    formData.append("chunk", i);
-
-                    this.$ajax.post(options.action, formData);
-                }
-                console.log( (Date.now() - start) / 1000 );
-            }).catch((error) => {
-                console.error(error);
-            })
-        },
-        sliceFile(file, chunkSize = 5 * 1024 * 1024) {
-            const fontSize = file.size;
-            let start = 0;
-            let end = start + chunkSize;
-            const chunks = [];
-            while(start < fontSize) {
-                const blob = file.slice(start, end);
-                chunks.push(blob);
-                start = end;
-                end += chunkSize;
+            const chunks = sliceFile(file);
+            // 生成文件MD5
+            const fileMD5 = await generateFileMD5(file);
+            if (fileMD5 === -1) {
+                console.error('MD5生成失败，请重新上传');
             }
-            return chunks;
-        }
+            const chunksLength = chunks.length;
+            let initSize = Math.min(chunksLength, 10);
+
+            const fileInfo = {
+                name: file.name,
+                id: fileMD5,
+                fileTotalNum: chunksLength
+            };
+
+            const promiseArr = [];
+            // 创建请求，完成一个请求时，移除此项，添加新的请求
+            const createReq = (index) => {
+                const formData = new FormData();
+                formData.append("name", fileInfo.name);
+                formData.append("id", fileInfo.id);
+                formData.append("fileTotalNum", fileInfo.fileTotalNum);
+                formData.append("file", chunks[index]);
+                formData.append("fileIndex", index);
+                return this.$ajax.post('/api/uploadFile', formData).then(res => {
+                    if (initSize < chunksLength) {
+                        promiseArr.push(createReq(initSize));
+                        initSize++;
+                    }
+                    return res;
+                });
+            }
+            
+            for (let i = 0; i < initSize; i++) {
+                promiseArr.push(createReq(i));
+            }
+            Promise.all(promiseArr).then(res => {
+                console.log(res);
+            });
+        },
+        
     }
 }
 </script>

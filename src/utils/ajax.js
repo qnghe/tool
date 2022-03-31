@@ -44,11 +44,10 @@ http.interceptors.response.use(
             } else if (response.status == 403) {
 
             } else {
-
-                // Vue.prototype.$message.error(message || '网络错误,请稍后再试!')
+                console.error(error)
             }
         } else {
-            // Vue.prototype.$message.error('网络异常，请稍后再试或联系管理员!')
+            console.error('unknown error!');
         }
         return Promise.reject(err)
     }

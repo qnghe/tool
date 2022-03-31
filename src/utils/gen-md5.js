@@ -1,4 +1,5 @@
 import SparkMD5 from 'spark-md5';
+import { to } from './promise'
 
 // 小文件生成MD5
 function generateSmallFileMD5(file) {
@@ -8,6 +9,9 @@ function generateSmallFileMD5(file) {
         fileReader.onload = e => {
             const md5 = SparkMD5.hashBinary(e.target.result);
             resolve(md5);
+        };
+        fileReader.onerror = e => {
+            reject(e);
         };
     });
 }
@@ -35,15 +39,25 @@ function generateLargeFileMD5(file, chunkSize) {
                 resolve(md5.end());
             }
         };
+        fileReader.onerror = e => {
+            reject(e);
+        };
         loadFile();
     });
 }
 
-export function generateFileMD5(file, chunkSize = 5 * 1024 *1024) {
+export async function generateFileMD5(file, chunkSize = 5 * 1024 *1024) {
     if (!file) return Promise.reject('文件为空！');
+    let res = '';
+    let err = null;
     if (file.size > 50 * 1024 * 1024) {
-        return generateLargeFileMD5(file, chunkSize);
+        [err, res] = await to(generateLargeFileMD5(file, chunkSize));
     } else {
-        return generateSmallFileMD5(file);
+        [err, res] = await to(generateSmallFileMD5(file));
     }
+    if (err) {
+        console.error(err);
+        res = -1;
+    }
+    return res;
 }
