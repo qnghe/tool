@@ -1,11 +1,12 @@
 <template>
     <div class="audio-text">
         <el-upload
-            class="upload-demo"
+            class="upload"
             drag
             action="/api/uploadFile"
-            :on-progress="uploading"
+            :auto-upload="true"
             :http-request="uploadReq"
+            :on-change="changeHandler"
         >
             <el-icon class="el-icon--upload"><upload-filled /></el-icon>
             <div class="el-upload__text">文件拖来或<em>点击上传</em></div>
@@ -20,7 +21,9 @@
     </div>
 </template>
 <script setup>
-import { UploadFilled, Download } from "@element-plus/icons-vue";
+import { UploadFilled, Download, Delete  } from "@element-plus/icons-vue";
+import { ref } from 'vue';
+const disabled = ref(true);
 function uploading(event, file, fileList) {
   console.log(event);
   console.log(file);
@@ -31,12 +34,11 @@ function uploading(event, file, fileList) {
 import { generateFileMD5 } from '@/utils/gen-md5.js';
 import { sliceFile } from '@/utils/file.js';
 export default {
-    mounted() {
-        // this.$api.get('/api/word').then(res => {
-        //     console.log(res);
-        // })
-    },
+
     methods: {
+        changeHandler(uploadFile, uploadFiles) {
+            console.log(uploadFile, uploadFiles);
+        },
         async uploadReq(options) {
             console.log(options);
             const file = options.file;
@@ -76,18 +78,41 @@ export default {
             for (let i = 0; i < initSize; i++) {
                 promiseArr.push(createReq(i));
             }
-            Promise.all(promiseArr).then(res => {
+            return Promise.all(promiseArr).then(res => {
                 console.log(res);
             });
         },
         
-    }
+    },
+    mounted() {
+        // this.$api.get('/api/word').then(res => {
+        //     console.log(res);
+        // })
+
+        function t(fn, wait) {
+            let timeoutId;
+            return function() {
+                if (timeoutId) return;
+                timeoutId = setTimeout(() => {
+                    fn();
+                    timeoutId = null;
+                }, wait);
+            }
+        }
+        
+        
+    },
 }
 </script>
 <style scoped>
 .audio-text {
   margin-top: 80px;
   text-align: center;
+}
+.upload {
+    margin: 0 auto;
+    width: 360px;
+
 }
 .download-box {
     margin: 48px auto 0;

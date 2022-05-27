@@ -4,7 +4,10 @@
     <h2 class="title">首页</h2>
     <el-row :gutter="12">
         <el-col :span="8">
-            <el-card class="tool-item" shadow="hover" @click="toAudiotext">音频文件转文字</el-card>
+            <el-card class="tool-item" shadow="hover" @click="toPage('/audiotext')">音频文件转文字</el-card>
+        </el-col>
+        <el-col :span="8">
+            <el-card class="tool-item" shadow="hover" @click="toPage('/svg')">SVG</el-card>
         </el-col>
         
     </el-row>
@@ -21,9 +24,8 @@ export default {
         }
     },
     methods: {
-        toAudiotext() {
-            console.log(this);
-            this.$router.push('/audiotext')
+        toPage(url) {
+            this.$router.push(url)
         }
     }
 }

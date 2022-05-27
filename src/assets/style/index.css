@@ -1,6 +1,12 @@
+body {
+    font-family: "PingFang SC", miui, system-ui, -apple-system, BlinkMacSystemFont, Helvetica Neue, Helvetica, sans-serif;
+}
 #app {
-    font-family: Avenir, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     color: #333;
+}
+a {
+    color: #333;
+    text-decoration: none;
 }
