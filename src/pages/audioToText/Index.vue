@@ -106,6 +106,17 @@ async function uploadReq(file) {
 function download() {
     
 }
+const wsClient = new WebSocket('ws://localhost:3002/ws');
+wsClient.onmessage = (data) => {
+    console.log(data);
+    setTimeout(() => {
+        wsClient.send('客户端收到了，over');
+    }, 5000);
+    setTimeout(() => {
+        wsClient.close()
+    }, 5000);
+};
+
 
 </script>
 <style lang="scss" scoped>

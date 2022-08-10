@@ -19,7 +19,11 @@ export default defineConfig({
       '/static': {
         target: 'http://localhost:3001',
         changeOrigin: true,
-      }
+      },
+      // '/ws': {
+      //   target: 'ws://localhost:3002',
+      //   changeOrigin: true,
+      // }
     }
   }
 })
