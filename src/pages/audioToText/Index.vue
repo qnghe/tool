@@ -16,45 +16,76 @@
             </template>
         </el-upload>
         <transition name="fade">
-            <el-card v-if="fileInfo" class="audio-box" shadow="hover" v-loading="isUploading">
+            <el-card v-if="fileInfo" class="audio-box" shadow="hover" v-loading="isUploading" element-loading-text="正在识别...">
                 <h4>{{fileInfo.name}}</h4>
-                <el-button type="primary" v-if="!isDownloadable" @click="startTranfer">识别</el-button>
-                <el-button type="primary" v-else @click="download">下载</el-button>
-                <!-- <el-icon class="icon-download"><download /></el-icon> -->
+                <el-button type="primary" v-if="!isCompleted" @click="startTranfer">识别</el-button>
+                <el-button type="primary" disabled v-else>识别完成</el-button>
             </el-card>
         </transition>
-        <section></section>
+        <template v-if="resultArr.length > 0">
+            <section v-for="(item, index) in resultArr" class="result-item">
+                <div class="operate-box">
+                    <el-icon class="copy-icon" @click="copy(item.text)" title="复制"><DocumentCopy /></el-icon>
+                    <el-icon class="delete-icon" @click="deleteResult(index)" title="删除"><Delete /></el-icon>
+                </div>
+                <pre class="text-result">{{item.text}}</pre>
+            </section>
+        </template>
     </div>
 </template>
 <script setup>
-import { UploadFilled, Download, Delete  } from "@element-plus/icons-vue";
+import { UploadFilled, DocumentCopy, Delete } from '@element-plus/icons-vue';
+import { ElMessage } from 'element-plus';
 import { ref } from 'vue';
 import { generateFileMD5 } from '@/utils/gen-md5.js';
 import { sliceFile } from '@/utils/file.js';
 import req from '@/utils/request.js';
 
 const isUploading = ref(false);
-const isDownloadable = ref(false);
+const isCompleted = ref(false);
 const fileInfo = ref(null);
-function uploading(event, file, fileList) {
-  console.log(event);
-  console.log(file);
-  console.log(fileList);
-};
+const resultArr = ref([]);
+let taskId = null;
 
 // 上传文件变化时
 function fileChangeHandler(uploadFile) {
-    fileInfo.value = uploadFile
-
+    if (isUploading.value) return false;
+    fileInfo.value = uploadFile;
+    isCompleted.value = false;
 }
 function startTranfer() {
     uploadReq(fileInfo.value.raw);
 }
+// 识别
 async function convertAudioToText(fileURL) {
     req.post('/api/audioToText', { fileURL }).then(({res}) => {
-        console.log(res);
-        isUploading.value = false;
-        isDownloadable.value = true;
+        if (res.code === 1) {
+            taskId = res.data.id;
+            getAudioTextResult();
+        } else {
+            ElMessage.error(res.error || res.msg);
+        }
+    })
+}
+// 获取识别结果
+function getAudioTextResult() {
+    req.get(`/api/getAudioTextResult/${taskId}`).then(({res}) => {
+        if (res.code === 1) {
+            if (res.data.Status === 0 || res.data.Status === 1) {
+                setTimeout(() => {
+                    getAudioTextResult();
+                }, 2000);
+            } else if (res.data.Status === 2) {
+                resultArr.value.push({
+                    name: fileInfo.value.name,
+                    text: res.data.Result
+                });
+                isUploading.value = false;
+                isCompleted.value = true;
+            }
+        } else if (res.code === 0) {
+            ElMessage.error(res.error || res.msg);
+        }
     })
 }
 
@@ -103,20 +134,15 @@ async function uploadReq(file) {
     }
 }
 
-function download() {
-    
+function copy(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        ElMessage.success('复制成功');
+    });
 }
-const wsClient = new WebSocket('ws://localhost:3002/ws');
-wsClient.onmessage = (data) => {
-    console.log(data);
-    setTimeout(() => {
-        wsClient.send('客户端收到了，over');
-    }, 5000);
-    setTimeout(() => {
-        wsClient.close()
-    }, 5000);
-};
 
+function deleteResult(index) {
+    resultArr.value.splice(index, 1);
+}
 
 </script>
 <style lang="scss" scoped>
@@ -129,12 +155,37 @@ wsClient.onmessage = (data) => {
     width: 360px;
 }
 .audio-box {
-    margin: 48px auto 0;
+    margin: 20px auto 0;
     width: 360px;
     cursor: pointer;
 }
-
-.icon-download {
-    font-size: 48px;
+.result-item {
+    position: relative;
+    margin: 20px auto 0;
+    width: 1000px;
+}
+.operate-box {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    .el-icon {
+        color: #8c8c8d;
+        cursor: pointer;
+        margin-left: 8px;
+        transition: color 0.3s;
+    }
+    .copy-icon:hover {
+        color: #494949;
+    }
+    .delete-icon:hover {
+        color: #f56c6c;
+    }
+}
+.text-result {
+    padding: 16px;
+    max-height: 400px;
+    overflow: auto;
+    border: 1px solid #e4e7ed;
+    text-align: left;
 }
 </style>
