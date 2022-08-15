@@ -82,6 +82,8 @@ function getAudioTextResult() {
                 });
                 isUploading.value = false;
                 isCompleted.value = true;
+            } else if (res.data.Status === 3) {
+                ElMessage.error(res.data.ErrorMsg);
             }
         } else if (res.code === 0) {
             ElMessage.error(res.error || res.msg);
