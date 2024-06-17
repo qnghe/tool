@@ -8,8 +8,8 @@ import routes from './routes';
 import request from './utils/request';
 
 const router = createRouter({
-    history: createWebHistory(),
-    routes
+  history: createWebHistory(),
+  routes
 });
 
 const app = createApp(App);
